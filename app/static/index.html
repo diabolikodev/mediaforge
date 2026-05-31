@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>MediaForge</title>
+  <meta name="theme-color" content="#050304" />
+  <link rel="icon" type="image/png" href="/static/assets/mediaforge-logo.png" />
+
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true">
+    <div class="grid"></div>
+    <div class="glow"></div>
+  </div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark">
+          <img src="/static/assets/mediaforge-logo.png" alt="MediaForge logo" />
+        </span>
+        <div>
+          <p>MediaForge</p>
+          <small>media toolkit</small>
+        </div>
+      </div>
+
+      <div class="status">
+        <span></span>
+        ready
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="cmd"><span>$</span> init mediaforge</p>
+      <h1>Download. Tag. Organize.</h1>
+      <p class="lead">
+        A clean media toolkit for audio, video, covers and metadata.
+      </p>
+
+      <div class="compat-card">
+        <span>compatibility</span>
+        <p>
+          Works best with YouTube and supports many compatible media links.
+          Some platforms may be limited by login, region locks or platform restrictions.
+        </p>
+      </div>
+    </section>
+
+    <section class="terminal">
+      <div class="window-head">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <p>mediaforge@system: ~/download</p>
+      </div>
+
+      <div class="window-body">
+        <label class="label" for="url">Media URL</label>
+
+        <div class="url-row">
+          <input id="url" type="url" placeholder="https://..." autocomplete="off" />
+          <button id="analyzeBtn">Analyze</button>
+        </div>
+
+        <div id="notice" class="notice hidden"></div>
+
+        <div id="preview" class="preview hidden">
+          <img id="thumb" alt="" />
+          <div>
+            <p class="mini">$ media info</p>
+            <h2 id="title">Untitled</h2>
+            <p id="meta"></p>
+            <p id="desc"></p>
+          </div>
+        </div>
+
+        <div class="options">
+          <div>
+            <label class="label" for="mode">Mode</label>
+            <select id="mode">
+              <option value="audio_mp3">MP3 audio</option>
+              <option value="audio_m4a">M4A audio</option>
+              <option value="audio_webm">WEBM audio</option>
+              <option value="video_mp4">MP4 video</option>
+              <option value="best">Best original</option>
+            </select>
+            <small class="field-hint">Choose audio, video, or original best format.</small>
+          </div>
+
+          <div id="audioQualityWrap">
+            <label class="label" for="quality">Audio quality</label>
+            <select id="quality">
+              <option value="128k">128k</option>
+              <option value="192k">192k</option>
+              <option value="256k">256k</option>
+              <option value="320k" selected>320k</option>
+            </select>
+            <small class="field-hint">Export bitrate. It will not improve the original source quality.</small>
+          </div>
+
+          <div id="videoQualityWrap" class="hidden">
+            <label class="label" for="videoQuality">Video quality</label>
+            <select id="videoQuality">
+              <option value="best" selected>best available</option>
+              <option value="1080p">1080p max</option>
+              <option value="720p">720p max</option>
+              <option value="480p">480p max</option>
+            </select>
+            <small class="field-hint">Maximum video height when available.</small>
+          </div>
+        </div>
+
+        <div class="checks">
+          <label><input type="checkbox" id="embedMetadata" checked /> embed metadata</label>
+          <label><input type="checkbox" id="embedCover" checked /> embed cover</label>
+          <label><input type="checkbox" id="saveThumb" checked /> save thumbnail</label>
+          <label><input type="checkbox" id="saveDescription" /> save description</label>
+          <label><input type="checkbox" id="saveJson" checked /> save metadata json</label>
+        </div>
+
+        <div class="actions">
+          <button id="downloadBtn" class="primary">Download</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+          <button id="openDownloadsBtn" class="ghost">Open downloads</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="jobs">
+      <div class="section-title">
+        <p class="cmd"><span>$</span> jobs</p>
+        <div class="job-actions">
+          <button id="refreshBtn">Reload jobs</button>
+          <button id="clearCompletedBtn">Clear completed</button>
+          <button id="clearAllBtn">Clear all</button>
+        </div>
+      </div>
+      <div id="jobsList" class="jobs-list"></div>
+    </section>
+
+    <footer>
+      <span>MediaForge</span>
+      <span>Download. Tag. Organize.</span>
+      <a class="signature" href="https://diaboliko.dev" target="_blank" rel="noreferrer">Developed by Diaboliko</a>
+    </footer>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

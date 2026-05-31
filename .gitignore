@@ -1,0 +1,10 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+downloads/*
+!downloads/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
