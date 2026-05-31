@@ -154,7 +154,6 @@ mediaforge/
 │       ├── style.css
 │       └── script.js
 ├── downloads/
-├── docs/
 ├── requirements.txt
 ├── run.py
 ├── run.bat
