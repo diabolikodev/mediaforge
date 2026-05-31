@@ -166,10 +166,10 @@ mediaforge/
 
 ## Credits
 
-Developed by [Diaboliko](https://diaboliko.dev).
+Developed by [Diaboliko](https://diaboliko.dev)
 
 ---
 
 ## License
 
-MIT
+Released under the MIT License.
