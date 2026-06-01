@@ -74,12 +74,54 @@ a {
   position: relative;
   z-index: 1;
   width: min(var(--max), calc(100% - 40px));
-  margin: 0 auto;
-  min-height: 100vh;
+  margin: clamp(20px, 3vw, 34px) auto;
+  min-height: auto;
+  padding: clamp(22px, 4vw, 72px) clamp(18px, 4.5vw, 124px) clamp(18px, 3vw, 44px);
+  border: 1px solid rgba(255, 43, 43, 0.42);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 48% 34%, rgba(255, 43, 43, 0.105), transparent 28rem),
+    radial-gradient(circle at 12% 12%, rgba(255, 43, 43, 0.08), transparent 18rem),
+    linear-gradient(180deg, rgba(12, 5, 6, 0.88), rgba(5, 3, 4, 0.92));
+  box-shadow:
+    0 42px 150px rgba(0, 0, 0, 0.68),
+    0 0 0 1px rgba(255, 241, 241, 0.035),
+    0 0 72px rgba(255, 43, 43, 0.12),
+    inset 0 1px 0 rgba(255, 241, 241, 0.055);
+  overflow: hidden;
+}
+
+.app::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: 33px;
+  border: 1px solid rgba(255, 241, 241, 0.035);
+}
+
+.app::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 34%, rgba(255, 241, 241, 0.045), transparent 47%);
+  opacity: 0.32;
+  transform: translateX(-18%);
+}
+
+.topbar,
+.hero,
+.terminal,
+.jobs,
+footer {
+  position: relative;
+  z-index: 1;
 }
 
 .topbar {
-  height: 86px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -136,7 +178,7 @@ a {
 }
 
 .hero {
-  padding: 60px 0 36px;
+  padding: clamp(42px, 5vw, 70px) 0 36px;
 }
 
 .cmd {
@@ -189,13 +231,14 @@ h1 {
 }
 
 .terminal {
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 241, 241, 0.13);
   border-radius: 24px;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(18, 9, 10, 0.92), rgba(8, 4, 5, 0.92));
+  background: linear-gradient(180deg, rgba(18, 9, 10, 0.94), rgba(8, 4, 5, 0.94));
   box-shadow:
-    0 34px 120px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 241, 241, 0.045);
+    0 34px 120px rgba(0, 0, 0, 0.52),
+    0 0 34px rgba(255, 43, 43, 0.045),
+    inset 0 1px 0 rgba(255, 241, 241, 0.05);
 }
 
 .window-head {
@@ -485,7 +528,14 @@ footer {
 
 @media (max-width: 760px) {
   .app {
-    width: min(var(--max), calc(100% - 28px));
+    width: min(var(--max), calc(100% - 20px));
+    margin: 10px auto;
+    padding: 18px 14px 18px;
+    border-radius: 24px;
+  }
+
+  .app::before {
+    border-radius: 23px;
   }
 
   .url-row,
