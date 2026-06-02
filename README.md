@@ -49,8 +49,8 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 
 ### Requirements
 
-- Python `3.11+`
-- FFmpeg available in PATH
+- [Python 3.11+](https://www.python.org/downloads/) installed
+- [FFmpeg](https://ffmpeg.org/download.html) installed and available in PATH
 
 ```powershell
 ffmpeg -version
