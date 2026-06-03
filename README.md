@@ -36,11 +36,11 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 
 ## Features
 
-| Media | Metadata | Workflow |
-|---|---|---|
-| MP3 / M4A / WEBM audio | cover image | URL analysis |
-| MP4 video | description `.txt` | background jobs |
-| best original format | metadata `.json` | organized output |
+| Media                       | Metadata                     | Workflow               |
+| --------------------------- | ---------------------------- | ---------------------- |
+| MP3 / M4A / WEBM audio      | cover image                  | URL analysis           |
+| MP4 video                   | description `.txt`           | background jobs        |
+| best original format        | metadata `.json`             | organized output       |
 | audio/video quality presets | embedded tags when supported | open downloads from UI |
 
 ---
@@ -49,27 +49,31 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 
 ### Requirements
 
-- [Python 3.11+](https://www.python.org/downloads/) installed
-- [FFmpeg](https://ffmpeg.org/download.html) installed and available in PATH
+* [Python 3.11+](https://www.python.org/downloads/) installed
+* [FFmpeg](https://ffmpeg.org/download.html) installed and available in PATH
+
+Check FFmpeg with:
 
 ```powershell
 ffmpeg -version
 ```
 
-## Portable release
+### Portable release
 
 The easiest way to use MediaForge is through the portable release.
 
-1. Download the latest `MediaForge-v1.0.1-portable.zip` from the Releases page.
+1. Download the latest `MediaForge-v1.0.2-portable.zip` from the Releases page.
 2. Extract the ZIP.
 3. Run `run.bat`.
 
 MediaForge will start locally and open in your browser.
 
-### Run
+### Run from source
 
-```md
-Run `run.bat`
+From the project folder, run:
+
+```powershell
+.\run.bat
 ```
 
 MediaForge opens automatically at:
@@ -77,6 +81,20 @@ MediaForge opens automatically at:
 ```txt
 http://127.0.0.1:8787
 ```
+
+---
+
+## Build Portable Package
+
+To create a clean portable ZIP from the repository:
+
+```powershell
+.\tools\build_portable.ps1 -Version v1.0.2
+```
+
+The generated ZIP is created outside the project folder.
+
+The build script excludes development files such as `.git`, `.venv`, `__pycache__`, `.pyc` files and real downloaded media.
 
 ---
 
@@ -119,13 +137,13 @@ Some platforms may require login, cookies, region access, or may block extractio
 
 ## Notes
 
-**Video quality**  
+**Video quality**
 `1080p max`, `720p max`, and `480p max` mean “up to that quality when available”.
 
-**Audio quality**  
+**Audio quality**
 The MP3 bitrate controls the exported file. It does not improve the original source quality.
 
-**Jobs**  
+**Jobs**
 Clearing jobs only clears the UI list. It does not delete downloaded files.
 
 ---
@@ -136,12 +154,12 @@ MediaForge is intended as a private desktop utility.
 
 Current safeguards:
 
-- binds to `127.0.0.1`
-- accepts only `http` and `https` URLs
-- limits request body size
-- constrains static file paths
-- limits active jobs
-- blocks clearing all jobs while downloads are running
+* binds to `127.0.0.1`
+* accepts only `http` and `https` URLs
+* limits request body size
+* constrains static file paths
+* limits active jobs
+* blocks clearing all jobs while downloads are running
 
 Do not expose it publicly without authentication, rate limiting, and additional hardening.
 
@@ -164,10 +182,16 @@ mediaforge/
 │       ├── style.css
 │       └── script.js
 ├── downloads/
+│   └── .gitkeep
+├── tools/
+│   └── build_portable.ps1
+├── CHANGELOG.md
+├── SECURITY.md
 ├── requirements.txt
 ├── run.py
 ├── run.bat
 ├── RUN_SILENT.vbs
+├── LICENSE
 └── README.md
 ```
 

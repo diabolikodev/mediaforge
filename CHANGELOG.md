@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.2
+
+- Added portable build script.
+- Cleaned portable package output.
+- Excluded Python cache files from release ZIP.
+- Improved release build consistency.
+
 ## v1.0.1
 
 - Updated internal version metadata.
