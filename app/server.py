@@ -15,7 +15,7 @@ from app.utils import DOWNLOAD_DIR, STATIC_DIR, ValidationError, validate_media_
 
 
 APP_NAME = "MediaForge"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 HOST = "127.0.0.1"
 PORT = 8787
@@ -90,7 +90,7 @@ def open_downloads_folder():
 
 
 class MediaForgeHandler(BaseHTTPRequestHandler):
-    server_version = "MediaForge/1.0.1"
+    server_version = "MediaForge/1.0.2"
 
     def log_message(self, format, *args):
         if DEBUG:
