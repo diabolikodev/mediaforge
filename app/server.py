@@ -14,6 +14,9 @@ from app.media import analyze_url, download_job
 from app.utils import DOWNLOAD_DIR, STATIC_DIR, ValidationError, validate_media_url
 
 
+APP_NAME = "MediaForge"
+APP_VERSION = "1.0.1"
+
 HOST = "127.0.0.1"
 PORT = 8787
 MAX_ACTIVE_JOBS = 2
@@ -87,7 +90,7 @@ def open_downloads_folder():
 
 
 class MediaForgeHandler(BaseHTTPRequestHandler):
-    server_version = "MediaForge/0.6"
+    server_version = "MediaForge/1.0.1"
 
     def log_message(self, format, *args):
         if DEBUG:
@@ -105,7 +108,7 @@ class MediaForgeHandler(BaseHTTPRequestHandler):
             return
 
         if route == "/health":
-            json_response(self, 200, {"ok": True, "app": "MediaForge"})
+            json_response(self, 200, {"ok": True,"app": APP_NAME,"version": APP_VERSION})
             return
 
         if route == "/api/jobs":

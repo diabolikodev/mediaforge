@@ -56,10 +56,20 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 ffmpeg -version
 ```
 
+## Portable release
+
+The easiest way to use MediaForge is through the portable release.
+
+1. Download the latest `MediaForge-v1.0.1-portable.zip` from the Releases page.
+2. Extract the ZIP.
+3. Run `run.bat`.
+
+MediaForge will start locally and open in your browser.
+
 ### Run
 
-```powershell
-.\run.bat
+```md
+Run `run.bat`
 ```
 
 MediaForge opens automatically at:
