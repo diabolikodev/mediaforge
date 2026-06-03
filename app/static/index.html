@@ -60,8 +60,18 @@
         <label class="label" for="url">Media URL</label>
 
         <div class="url-row">
-          <input id="url" type="url" placeholder="https://..." autocomplete="off" />
-          <button id="analyzeBtn">Analyze</button>
+          <textarea id="url" rows="3" placeholder="https://...&#10;Paste multiple links for batch downloads" autocomplete="off"></textarea>
+          <button id="analyzeBtn">Analyze preview</button>
+        </div>
+
+        <small class="field-hint">Paste one URL or multiple URLs separated by new lines. Preview analyzes the first item; download processes the full queue.</small>
+
+        <div class="presets">
+          <button type="button" data-preset="audio_best">Audio best</button>
+          <button type="button" data-preset="mp3_320">MP3 320</button>
+          <button type="button" data-preset="video_1080">Video 1080p</button>
+          <button type="button" data-preset="video_720">Video 720p</button>
+          <button type="button" data-preset="original">Original</button>
         </div>
 
         <div id="notice" class="notice hidden"></div>
@@ -120,8 +130,22 @@
           <label><input type="checkbox" id="saveJson" checked /> save metadata json</label>
         </div>
 
+        <div class="playlist-controls">
+          <label class="playlist-toggle"><input type="checkbox" id="expandPlaylists" /> expand playlist links</label>
+          <label class="playlist-limit">
+            <span>playlist limit</span>
+            <select id="playlistLimit">
+              <option value="50">50 items</option>
+              <option value="100">100 items</option>
+              <option value="250">250 items</option>
+              <option value="unlimited">no limit</option>
+            </select>
+          </label>
+        </div>
+
         <div class="actions">
           <button id="downloadBtn" class="primary">Download</button>
+          <button id="saveSettingsBtn" class="ghost">Save defaults</button>
           <button id="clearBtn" class="ghost">Clear</button>
           <button id="openDownloadsBtn" class="ghost">Open downloads</button>
         </div>
@@ -129,13 +153,29 @@
     </section>
 
     <section class="jobs">
-      <div class="section-title">
-        <p class="cmd"><span>$</span> jobs</p>
-        <div class="job-actions">
-          <button id="refreshBtn">Reload jobs</button>
-          <button id="clearCompletedBtn">Clear completed</button>
-          <button id="clearAllBtn">Clear all</button>
+      <div class="jobs-panel-head">
+        <div class="jobs-title-row">
+          <div>
+            <p class="cmd"><span>$</span> jobs</p>
+            <small>Filter jobs and manage the queue.</small>
+          </div>
+
+          <div class="jobs-top-actions">
+            <button id="refreshBtn">Refresh</button>
+            <button id="manageQueueBtn">Manage queue <span>⌄</span></button>
+          </div>
         </div>
+
+        <div id="jobStats" class="job-stats">
+          <span>0 all</span>
+          <span>0 queued</span>
+          <span>0 running</span>
+          <span>0 completed</span>
+          <span>0 failed</span>
+          <span>0 cancelled</span>
+        </div>
+
+        <div id="jobsNotice" class="jobs-notice hidden"></div>
       </div>
       <div id="jobsList" class="jobs-list"></div>
     </section>
@@ -146,6 +186,18 @@
       <a class="signature" href="https://diaboliko.dev" target="_blank" rel="noreferrer">Developed by Diaboliko</a>
     </footer>
   </main>
+
+  <div id="queueMenuLayer" class="queue-menu-layer hidden">
+    <div class="queue-menu-panel" role="menu" aria-label="Manage queue">
+      <button id="pauseQueueBtn">Pause queue</button>
+      <button id="resumeQueueBtn">Resume queue</button>
+      <button id="cancelQueuedBtn">Cancel queued</button>
+      <button id="cancelActiveBtn" class="danger">Stop active</button>
+      <button id="clearCompletedBtn">Clear finished</button>
+      <button id="clearVisibleBtn">Clear current filter</button>
+      <button id="clearAllBtn" class="danger-soft">Clear all</button>
+    </div>
+  </div>
 
   <script src="/static/script.js"></script>
 </body>

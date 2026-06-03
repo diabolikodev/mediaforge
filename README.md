@@ -36,12 +36,14 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 
 ## Features
 
-| Media                       | Metadata                     | Workflow               |
-| --------------------------- | ---------------------------- | ---------------------- |
-| MP3 / M4A / WEBM audio      | cover image                  | URL analysis           |
-| MP4 video                   | description `.txt`           | background jobs        |
-| best original format        | metadata `.json`             | organized output       |
-| audio/video quality presets | embedded tags when supported | open downloads from UI |
+| Media | Metadata | Workflow |
+|---|---|---|
+| MP3 / M4A / WEBM audio | cover image | URL analysis |
+| MP4 video | description `.txt` | background jobs |
+| best original format | metadata `.json` | organized output |
+| audio/video quality presets | embedded tags when supported | batch URL queue |
+| playlist expansion option | saved defaults | queue controls and output actions |
+| clean portable builds | technical error details | open downloads from UI |
 
 ---
 
@@ -49,8 +51,8 @@ It opens in your browser, runs on your machine, and stores files in clean folder
 
 ### Requirements
 
-* [Python 3.11+](https://www.python.org/downloads/) installed
-* [FFmpeg](https://ffmpeg.org/download.html) installed and available in PATH
+- [Python 3.11+](https://www.python.org/downloads/) installed
+- [FFmpeg](https://ffmpeg.org/download.html) installed and available in PATH
 
 Check FFmpeg with:
 
@@ -62,7 +64,7 @@ ffmpeg -version
 
 The easiest way to use MediaForge is through the portable release.
 
-1. Download the latest `MediaForge-v1.0.2-portable.zip` from the Releases page.
+1. Download the latest `MediaForge-v1.1.0-portable.zip` from the Releases page.
 2. Extract the ZIP.
 3. Run `run.bat`.
 
@@ -84,12 +86,62 @@ http://127.0.0.1:8787
 
 ---
 
+## Batch Downloads
+
+Paste multiple media links into the URL field, one per line.
+
+MediaForge will create one job for each URL and process them through the queue.
+
+Use `Analyze preview` to preview the first item before starting the queue.
+
+Enable `expand playlist links` when you want a playlist URL to become multiple queued jobs. Use the playlist limit selector to choose 50, 100, 250, or no limit.
+
+---
+
+## Queue Controls
+
+MediaForge keeps the jobs area simple while still giving control over larger batches and playlists.
+
+- Click a status chip to filter the job list.
+- Use `Refresh` to update the list without removing anything.
+- Open the `Manage queue` menu for advanced actions.
+- `Pause queue` stops new jobs from starting while current downloads continue.
+- `Resume queue` continues queued jobs.
+- `Cancel queued` cancels jobs that have not started yet.
+- `Stop active` cancels queued jobs and requests cancellation for running jobs.
+- `Clear finished` removes completed, failed and cancelled jobs.
+- `Clear current filter` removes the current completed, failed or cancelled filter.
+- Error details stay open while the job list refreshes.
+- The jobs area keeps stable spacing while queue controls open as a floating menu.
+
+---
+
+## Presets and Defaults
+
+MediaForge includes quick presets for common download modes:
+
+```txt
+Audio best · MP3 320 · Video 1080p · Video 720p · Original
+```
+
+You can also save your current mode, quality and metadata options as local defaults.
+
+Saved defaults are stored locally in:
+
+```txt
+mediaforge_settings.json
+```
+
+This file is ignored by Git and is not included in portable releases.
+
+---
+
 ## Build Portable Package
 
 To create a clean portable ZIP from the repository:
 
 ```powershell
-.\tools\build_portable.ps1 -Version v1.0.2
+.\tools\build_portable.ps1 -Version v1.1.0
 ```
 
 The generated ZIP is created outside the project folder.
@@ -137,13 +189,13 @@ Some platforms may require login, cookies, region access, or may block extractio
 
 ## Notes
 
-**Video quality**
+**Video quality**  
 `1080p max`, `720p max`, and `480p max` mean “up to that quality when available”.
 
-**Audio quality**
+**Audio quality**  
 The MP3 bitrate controls the exported file. It does not improve the original source quality.
 
-**Jobs**
+**Jobs**  
 Clearing jobs only clears the UI list. It does not delete downloaded files.
 
 ---
@@ -154,12 +206,14 @@ MediaForge is intended as a private desktop utility.
 
 Current safeguards:
 
-* binds to `127.0.0.1`
-* accepts only `http` and `https` URLs
-* limits request body size
-* constrains static file paths
-* limits active jobs
-* blocks clearing all jobs while downloads are running
+- binds to `127.0.0.1`
+- accepts only `http` and `https` URLs
+- limits request body size
+- constrains static file paths
+- limits active jobs
+- validates output folder actions inside `downloads`
+- blocks clearing all jobs while downloads are running
+- supports pausing and cancelling active queues
 
 Do not expose it publicly without authentication, rate limiting, and additional hardening.
 
@@ -173,6 +227,7 @@ mediaforge/
 │   ├── server.py
 │   ├── media.py
 │   ├── jobs.py
+│   ├── settings.py
 │   ├── utils.py
 │   └── static/
 │       ├── assets/

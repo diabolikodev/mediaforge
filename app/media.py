@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 from datetime import datetime
 
@@ -6,7 +7,17 @@ import requests
 import yt_dlp
 
 from app.jobs import jobs
+from app.settings import ALLOWED_AUDIO_QUALITY, ALLOWED_MODES, ALLOWED_VIDEO_QUALITY
 from app.utils import DOWNLOAD_DIR, duration_string, slugify, validate_media_url
+
+
+class CancelledDownload(Exception):
+    pass
+
+
+def ensure_not_cancelled(job_id):
+    if jobs.is_cancelled(job_id):
+        raise CancelledDownload("Cancelled by user.")
 
 
 def ffmpeg_available():
@@ -52,6 +63,73 @@ def analyze_url(url):
     }
 
 
+def playlist_entry_url(entry):
+    for key in ["webpage_url", "original_url", "url"]:
+        value = entry.get(key)
+        if isinstance(value, str) and value.startswith(("http://", "https://")):
+            return value
+
+    video_id = entry.get("id")
+
+    if video_id:
+        return f"https://www.youtube.com/watch?v={video_id}"
+
+    return None
+
+
+def expand_playlist_urls(url, limit=50):
+    url = validate_media_url(url)
+
+    options = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "extract_flat": "in_playlist",
+        "noplaylist": False,
+        "ignoreerrors": True,
+    }
+
+    with yt_dlp.YoutubeDL(options) as ydl:
+        info = ydl.extract_info(url, download=False)
+
+    entries = info.get("entries") or []
+
+    if not entries:
+        return {
+            "urls": [url],
+            "is_playlist": False,
+            "title": info.get("title"),
+            "entry_count": 1,
+            "truncated": False,
+        }
+
+    urls = []
+    seen = set()
+
+    for entry in entries:
+        if not entry:
+            continue
+
+        value = playlist_entry_url(entry)
+
+        if not value or value in seen:
+            continue
+
+        urls.append(value)
+        seen.add(value)
+
+        if limit is not None and len(urls) >= limit:
+            break
+
+    return {
+        "urls": urls or [url],
+        "is_playlist": True,
+        "title": info.get("title"),
+        "entry_count": len(entries),
+        "truncated": limit is not None and len(entries) > len(urls),
+    }
+
+
 def write_json(path, data):
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -63,12 +141,6 @@ def download_thumbnail(url, out_path):
     try:
         response = requests.get(url, timeout=20)
         response.raise_for_status()
-        content_type = response.headers.get("content-type", "").lower()
-
-        if "image" not in content_type and len(response.content) > 0:
-            # Some CDNs do not return a perfect content-type, so we avoid failing hard.
-            pass
-
         out_path.write_bytes(response.content)
         return True
     except Exception:
@@ -83,6 +155,38 @@ def build_video_format(video_quality: str) -> str:
     if video_quality == "480p":
         return "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best"
     return "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best"
+
+
+def classify_error(exc):
+    if isinstance(exc, CancelledDownload):
+        return "Cancelled.", "cancelled", "Cancelled by user."
+
+    detail = str(exc) or "Unexpected error."
+    detail = re.sub(r"\x1b\[[0-9;]*m", "", detail).strip()
+    lowered = detail.lower()
+
+    if "403" in lowered or "forbidden" in lowered:
+        return "Access forbidden by the platform.", "forbidden", detail
+
+    if "ffmpeg" in lowered:
+        return "FFmpeg not found or failed.", "ffmpeg", detail
+
+    if "unsupported url" in lowered or "not a valid url" in lowered:
+        return "Unsupported URL.", "unsupported_url", detail
+
+    if "private" in lowered or "login" in lowered or "sign in" in lowered or "cookies" in lowered:
+        return "Login or cookies may be required.", "login_required", detail
+
+    if "unavailable" in lowered or "removed" in lowered or "copyright" in lowered:
+        return "Media unavailable.", "unavailable", detail
+
+    if "timed out" in lowered or "timeout" in lowered or "network" in lowered or "connection" in lowered:
+        return "Network error.", "network", detail
+
+    if "requested format is not available" in lowered or "format is not available" in lowered:
+        return "Requested format is not available.", "format_unavailable", detail
+
+    return "Download failed.", "download_failed", detail
 
 
 def build_ydl_options(request, output_template, progress_hook):
@@ -153,40 +257,64 @@ def build_ydl_options(request, output_template, progress_hook):
     return options
 
 
+def normalize_download_request(request):
+    normalized = dict(request or {})
+    normalized["url"] = validate_media_url(normalized.get("url"))
+    normalized["mode"] = normalized.get("mode") or "audio_mp3"
+    normalized["quality"] = normalized.get("quality") or "320k"
+    normalized["video_quality"] = normalized.get("video_quality") or "best"
+
+    if normalized["mode"] not in ALLOWED_MODES:
+        raise ValueError("Invalid download mode.")
+
+    if normalized["quality"] not in ALLOWED_AUDIO_QUALITY:
+        raise ValueError("Invalid audio quality.")
+
+    if normalized["video_quality"] not in ALLOWED_VIDEO_QUALITY:
+        raise ValueError("Invalid video quality.")
+
+    for key in ["embed_metadata", "embed_cover", "save_thumbnail", "save_description", "save_metadata_json"]:
+        normalized[key] = bool(normalized.get(key))
+
+    return normalized
+
+
 def download_job(job_id, request):
-    url = request.get("url")
-
     try:
-        url = validate_media_url(url)
-        mode = request.get("mode", "audio_mp3")
-        quality = request.get("quality", "320k")
-        video_quality = request.get("video_quality", "best")
+        ensure_not_cancelled(job_id)
+        request = normalize_download_request(request)
+        url = request["url"]
+        mode = request["mode"]
+        quality = request["quality"]
+        video_quality = request["video_quality"]
 
-        allowed_modes = {"audio_mp3", "audio_m4a", "audio_webm", "video_mp4", "best"}
-        allowed_audio_quality = {"128k", "192k", "256k", "320k"}
-        allowed_video_quality = {"best", "1080p", "720p", "480p"}
+        jobs.update(
+            job_id,
+            url=url,
+            request=request,
+            mode=mode,
+            quality=quality,
+            video_quality=video_quality,
+        )
 
-        if mode not in allowed_modes:
-            raise ValueError("Invalid download mode.")
-
-        if quality not in allowed_audio_quality:
-            raise ValueError("Invalid audio quality.")
-
-        if video_quality not in allowed_video_quality:
-            raise ValueError("Invalid video quality.")
+        ensure_not_cancelled(job_id)
 
         if mode in {"audio_mp3", "audio_m4a", "video_mp4"} and not ffmpeg_available():
             jobs.update(
                 job_id,
                 status="failed",
                 progress=0,
-                message="ffmpeg missing",
-                error="FFmpeg is required for this mode but was not found in PATH.",
+                message="FFmpeg not found or failed.",
+                error="FFmpeg not found or failed.",
+                error_code="ffmpeg",
+                error_detail="FFmpeg is required for this mode but was not found in PATH.",
                 mode=mode,
                 quality=quality,
                 video_quality=video_quality,
             )
             return
+
+        ensure_not_cancelled(job_id)
 
         jobs.update(
             job_id,
@@ -198,6 +326,7 @@ def download_job(job_id, request):
             video_quality=video_quality,
         )
         info = analyze_url(url)
+        ensure_not_cancelled(job_id)
 
         title_slug = slugify(info.get("title") or "untitled")
         mode_slug = slugify(mode)
@@ -213,6 +342,7 @@ def download_job(job_id, request):
             output_dir = base_dir / f"{title_slug}_{suffix}"
 
         output_dir.mkdir(parents=True, exist_ok=True)
+        ensure_not_cancelled(job_id)
 
         jobs.update(
             job_id,
@@ -233,6 +363,7 @@ def download_job(job_id, request):
             download_thumbnail(info.get("thumbnail"), output_dir / "cover.jpg")
 
         def progress_hook(data):
+            ensure_not_cancelled(job_id)
             status = data.get("status")
 
             if status == "downloading":
@@ -253,11 +384,14 @@ def download_job(job_id, request):
             elif status == "finished":
                 jobs.update(job_id, status="converting", progress=88, message="processing file")
 
+        ensure_not_cancelled(job_id)
         output_template = str(output_dir / "%(title).120s.%(ext)s")
         options = build_ydl_options(request, output_template, progress_hook)
 
         with yt_dlp.YoutubeDL(options) as ydl:
             ydl.download([url])
+
+        ensure_not_cancelled(job_id)
 
         output_files = [
             str(path.relative_to(DOWNLOAD_DIR))
@@ -274,10 +408,15 @@ def download_job(job_id, request):
         )
 
     except Exception as exc:
+        message, code, detail = classify_error(exc)
+        status = "cancelled" if code == "cancelled" else "failed"
         jobs.update(
             job_id,
-            status="failed",
+            status=status,
             progress=0,
-            message="failed",
-            error=str(exc),
+            message=message,
+            error=None if code == "cancelled" else message,
+            error_code=code,
+            error_detail=None if code == "cancelled" else detail,
+            cancel_requested=code == "cancelled",
         )
